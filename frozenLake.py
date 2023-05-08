@@ -14,58 +14,60 @@ def main():
                                     desc=generate_random_map(size=4), is_slippery=True)
     frozenLakeGame.metadata["render_fps"] = 30
 
-    q_table = np.zeros((frozenLakeGame.observation_space.n,
-                        frozenLakeGame.action_space.n))
+    tableGame = np.zeros((frozenLakeGame.observation_space.n,
+                          frozenLakeGame.action_space.n))
+
+    print("Juego creado")
 
     for i in range(trainCicle):
-        state = frozenLakeGame.reset()[0]
+        game = frozenLakeGame.reset()[0]
         done = False
 
         while not done:
             if np.random.uniform(0, 1) < epsilon:
-                action = frozenLakeGame.action_space.sample()
+                jugada = frozenLakeGame.action_space.sample()
             else:
-                action = np.argmax(q_table[state, :])
+                jugada = np.argmax(tableGame[game, :])
 
-            next_state, reward, done, _, _ = frozenLakeGame.step(action)
+            GameNext, premio, done, _, _ = frozenLakeGame.step(jugada)
 
-            if done and reward == 0:
-                modified_reward = -0.5
+            if done and premio == 0:
+                tempPremio = -0.5
             else:
-                modified_reward = reward - 0.01
+                tempPremio = premio - 0.01
 
-            q_table[state, action] += 0.1 * (
-                modified_reward
-                + 0.99 * np.max(q_table[next_state, :])
-                - q_table[state, action]
+            tableGame[game, jugada] += 0.1 * (
+                tempPremio
+                + 0.99 * np.max(tableGame[GameNext, :])
+                - tableGame[game, jugada]
             )
-            state = next_state
+            game = GameNext
 
         epsilon = max(0.01, epsilon * 1.0)
 
-        print("Cicle: ", i + 1)
+        print("Ciclo train: ", i + 1)
 
     wins = 0
     iterationInfo = []
     cantIterations = 0
 
     for i in range(testCicle):
-        print(f"Iteration no. {i + 1}")
+        print("Ciclo test. ", i + 1)
         cantIterations += 1
 
-        state = frozenLakeGame.reset()[0]
+        game = frozenLakeGame.reset()[0]
         frozenLakeGame.render()
         done = False
 
         while not done:
-            action = np.argmax(q_table[state, :])
-            next_state, reward, done, _, _ = frozenLakeGame.step(action)
-            state = next_state
+            jugada = np.argmax(tableGame[game, :])
+            GameNext, premio, done, _, _ = frozenLakeGame.step(jugada)
+            game = GameNext
             frozenLakeGame.render()
             time.sleep(0.5)
 
             if done:
-                if reward == 1:
+                if premio == 1:
                     print("Agente logro el objetivo + 1")
                     wins += 1
                     iterationInfo.append(cantIterations)
