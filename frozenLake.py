@@ -1,47 +1,87 @@
-import gym
-import random
 import numpy as np
-from collections import defaultdict
+import gymnasium as gymnasium
+from gymnasium.envs.toy_text.frozen_lake import generate_random_map
+import time
 
-env = gym.make('FrozenLake-v1', is_slippery=True)
+# Hyperparameters
+alpha = 0.1
+gamma = 0.99
+epsilon = 1.0
+min_epsilon = 0.01
+epsilon_decay = 0.999
+training_episodes = 20000
+testing_episodes = 300
 
-alpha = 0.1  # learning rate
-gamma = 0.99  # discount factor
-epsilon = 0.1  # exploration rate
+# Creating the Frozen Lake environment
+desc = generate_random_map(size=4)
+env = gymnasium.make("FrozenLake-v1", render_mode="human",
+                     desc=desc, is_slippery=True)
+env.metadata["render_fps"] = 30
 
+# Q-table initialization
+q_table = np.zeros((env.observation_space.n, env.action_space.n))
 
-def q_learning(env, num_episodes):
-    Q = defaultdict(lambda: np.zeros(env.action_space.n))
+# Training the agent
+for episode in range(training_episodes):
+    state = env.reset()[0]
+    done = False
 
-    for i in range(num_episodes):
-        state = env.reset()
-        state = tuple(state.items())  # convert dictionary to tuple
-        done = False
+    while not done:
+        if np.random.uniform(0, 1) < epsilon:
+            action = env.action_space.sample()
+        else:
+            action = np.argmax(q_table[state, :])
 
-        while not done:
-            if random.uniform(0, 1) < epsilon:
-                action = env.action_space.sample()  # exploration
-            else:
-                action = np.argmax(Q[state])  # exploitation
+        next_state, reward, done, _, _ = env.step(action)
 
-            next_state, reward, done, _ = env.step(action)
-            # convert dictionary to tuple
-            next_state = tuple(next_state.items())
-            best_next_action = np.argmax(Q[next_state])
-            td_target = reward + gamma * Q[next_state][best_next_action]
-            td_error = td_target - Q[state][action]
-            Q[state][action] += alpha * td_error
+        # Update the modified_reward calculation
+        if done and reward == 0:
+            modified_reward = -0.5
+        else:
+            modified_reward = reward - 0.01
 
-            state = next_state
+        q_table[state, action] += alpha * (
+            modified_reward
+            + gamma * np.max(q_table[next_state, :])
+            - q_table[state, action]
+        )
+        state = next_state
 
-    return Q
+    epsilon = max(min_epsilon, epsilon * epsilon_decay)  # Decay epsilon
 
+    print(f"Training progress: Episode {episode + 1} of {training_episodes}")
 
-Q = q_learning(env, 10000)
+# Testing the trained agent
+wins = 0
+iterationInfo = []
+cantIterations = 0
 
-state = env.reset()
-done = False
-while not done:
-    action = np.argmax(Q[state])
-    state, reward, done, _ = env.step(action)
+for episode in range(testing_episodes):
+    print(f"Iteration no. {episode + 1}")
+    cantIterations += 1
+
+    state = env.reset()[0]
     env.render()
+    done = False
+
+    while not done:
+        action = np.argmax(q_table[state, :])
+        next_state, reward, done, _, _ = env.step(action)
+        state = next_state
+        env.render()
+        time.sleep(0.5)
+
+        if done:
+            if reward == 1:
+                print("Win\n")
+                wins += 1
+                iterationInfo.append(cantIterations)
+                cantIterations = 0
+            else:
+                print("Game Over\n")
+
+print(f"Number of wins: {wins}")
+for x in range(len(iterationInfo)):
+    print(f"{x + 1}: {iterationInfo[x]}")
+
+env.close()
