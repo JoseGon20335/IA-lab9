@@ -2,7 +2,7 @@ import numpy as np
 import gymnasium as gymnasium
 
 # Create the game punch_outironment
-punch_out = gymnasium.make('Boxing-v0', render_mode='human')
+punch_out = gymnasium.make('Boxing-v0')
 
 # Define the Q-table as a dictionary
 q_table = {}
@@ -15,10 +15,10 @@ epsilon_min = 0.1
 epsilon_decay = 0.99
 
 # Number of episodes for training
-num_episodes = 100
+num_episodes = 10000
 
 # Number of episodes for testing
-test_episodes = 10
+test_episodes = 100
 
 # Main loop for episodes
 for episode in range(num_episodes):
@@ -112,6 +112,8 @@ np.save("q_table.npy", q_table)
 wins = 0
 lose = 0
 
+#punch_out = gymnasium.make('Boxing-v0', render_mode="human")
+
 # Main loop for test episodes
 for episode in range(test_episodes):
 
@@ -124,7 +126,7 @@ for episode in range(test_episodes):
     total_reward = 0
 
     while True:
-        punch_out.render()
+        #punch_out.render()
 
         if img in q_table:
             q_values = q_table[img]
@@ -158,7 +160,7 @@ for episode in range(test_episodes):
 
     # Print the total reward for the episode    
     print(f"Episode: {episode + 1}, Reward: {total_reward}")
-    if total_reward > 100: # IE Knockout
+    if total_reward > 1: 
         wins += 1
     else:
         lose += 1
