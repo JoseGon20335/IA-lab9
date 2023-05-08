@@ -76,8 +76,11 @@ def main():
                     print("Agente no logro el objetivo")
 
     print(f"RESULTADOS: ", wins)
-    for x in range(len(iterationInfo)):
-        print(f"{x + 1}: {iterationInfo[x]}")
+    for i in range(len(iterationInfo)):
+        print("--------------------")
+        print("Num interacion:", i)
+        print(iterationInfo[i])
+        print("--------------------")
 
     frozenLakeGame.close()
 
