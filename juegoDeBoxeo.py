@@ -134,7 +134,7 @@ for episode in range(test_episodes):
             q_values = q_table[img]
         else:
             action = punch_out.action_space.sample()
-            obs, reward, done, q, w, info = punch_out.step(action)
+            obs, reward, done, q, w = punch_out.step(action)
             img = tuple(obs[0].flatten())
             continue
 
