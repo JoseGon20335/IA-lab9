@@ -15,10 +15,10 @@ epsilon_min = 0.1
 epsilon_decay = 0.99
 
 # Number of episodes for training
-num_episodes = 10000
+num_episodes = 500
 
 # Number of episodes for testing
-test_episodes = 100
+test_episodes = 10
 
 # Main loop for episodes
 for episode in range(num_episodes):
@@ -107,17 +107,19 @@ for episode in range(num_episodes):
     print(f"Episode: {episode + 1}, Reward: {total_reward}")
 
 # Store the Q-table
-np.save("q_table.npy", q_table)
+#np.save("q_table.npy", q_table)
+
+q_table = np.load("q_table.npy", allow_pickle=True).item()
 
 wins = 0
 lose = 0
 
-#punch_out = gymnasium.make('Boxing-v0', render_mode="human")
+punch_out = gymnasium.make('Boxing-v0', render_mode="human")
 
 # Main loop for test episodes
 for episode in range(test_episodes):
 
-    punch_out.reset()
+    obs = punch_out.reset()
 
     img = obs[0]
     
@@ -126,7 +128,7 @@ for episode in range(test_episodes):
     total_reward = 0
 
     while True:
-        #punch_out.render()
+        punch_out.render()
 
         if img in q_table:
             q_values = q_table[img]
